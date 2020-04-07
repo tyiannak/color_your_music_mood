@@ -1,20 +1,14 @@
 import sys
 import time
 import numpy
-import scipy
 import cv2
 import argparse
 import scipy.io.wavfile as wavfile
-from pyAudioAnalysis import ShortTermFeatures as sF
 from pyAudioAnalysis import MidTermFeatures as mF
 from pyAudioAnalysis import audioTrainTest as aT
-import scipy.signal
-import itertools
-import operator
 import datetime
 import signal
 import pyaudio
-import os
 import struct
 
 global fs
