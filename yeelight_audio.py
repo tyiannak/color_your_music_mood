@@ -16,10 +16,6 @@ global all_data
 global outstr
 fs = 8000
 FORMAT = pyaudio.paInt16
-all_data = []
-plot_h = 150
-plot_w = 720
-status_h = 150
 
 
 def signal_handler(signal, frame):
@@ -34,7 +30,6 @@ def signal_handler(signal, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
-
 
 
 def record_audio(block_size, fs=8000):
