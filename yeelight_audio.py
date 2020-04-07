@@ -87,9 +87,10 @@ def record_audio(block_size, fs=8000):
                 win_class = class_names[int(res)]
                 win_prob = prob[int(res)]
                 print(win_class, win_prob, x.shape)
+                all_data += mid_buf
                 mid_buf = numpy.double(mid_buf)
-
                 mid_buf = []
+
                 ch = cv2.waitKey(10)
                 count += 1
         except IOError:
