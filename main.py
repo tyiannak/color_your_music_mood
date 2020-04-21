@@ -106,18 +106,21 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             [res, prob] = aT.classifier_wrapper(classifier, "svm_rbf", fv)
             win_class = class_names[int(res)]
 
-            [res_energy, prob_energy] = aT.classifier_wrapper(clf_energy,
-                                                              "svm_rbf",
-                                                              fv_2)
+            [res_energy, p_en] = aT.classifier_wrapper(clf_energy, "svm_rbf",
+                                                       fv_2)
             win_class_energy = class_names_energy[int(res_energy)]
 
-            [res_valence, prob_valence] = aT.classifier_wrapper(clf_valence,
-                                                                "svm_rbf",
-                                                                fv_3)
+            [res_valence, p_val] = aT.classifier_wrapper(clf_valence, "svm_rbf",
+                                                         fv_3)
             win_class_valence = class_names_valence[int(res_valence)]
 
-            print(prob_valence)
+            soft_energy = p_en[class_names_energy.index("high")] - \
+                          p_en[class_names_energy.index("low")]
+            soft_valence = p_val[class_names_valence.index("positive")] - \
+                           p_val[class_names_valence.index("negative")]
+
             print(win_class, win_class_energy, win_class_valence)
+            print(soft_energy, soft_valence)
 
             if use_yeelight_bulbs:
                 for b in bulbs:
