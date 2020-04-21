@@ -55,7 +55,6 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
     # initalize counters etc
     time_start = time.time()
     outstr = datetime.datetime.now().strftime("%Y_%m_%d_%I:%M%p")
-    out_folder = outstr + "_segments"
 
     # load segment model
     [classifier, MEAN, STD, class_names,
