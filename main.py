@@ -1,5 +1,4 @@
 import sys
-import time
 import numpy
 import cv2
 import argparse
@@ -52,20 +51,19 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
     global all_data
     global outstr
     all_data = []
-    # initalize counters etc
-    time_start = time.time()
     outstr = datetime.datetime.now().strftime("%Y_%m_%d_%I:%M%p")
 
     # load segment model
-    [classifier, MEAN, STD, class_names,
+    [classifier, mu, std, class_names,
      mt_win, mt_step, st_win, st_step, _] = aT.load_model("model")
 
-    [clf_energy, MEAN_energy, STD_energy, class_names_energy,
-     mt_win_energy, mt_step_energy, st_win_energy, st_step_energy, _] = aT.load_model("energy")
+    [clf_energy, mu_energy, std_energy, class_names_energy,
+     mt_win_en, mt_step_en, st_win_en, st_step_en, _] = \
+        aT.load_model("energy")
 
-    [clf_valence, MEAN_valence, STD_valence, class_names_valence,
-     mt_win_valence, mt_step_valence, st_win_valence, st_step_valence, _] = aT.load_model("valence")
-
+    [clf_valence, mu_valence, std_valence, class_names_valence,
+     mt_win_va, mt_step_va, st_win_va, st_step_va, _] = \
+        aT.load_model("valence")
 
     while 1:
         block = stream.read(mid_buf_size)
@@ -76,56 +74,51 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
         mid_buf = mid_buf + cur_win
         del cur_win
         if len(mid_buf) >= 5 * fs:
-
-            # time since recording started:
-            e_time = (time.time() - time_start)
             # data-driven time
-            data_time = (count + 1) * block_size
             x = numpy.int16(mid_buf)
             seg_len = len(x)
 
             # extract features
             # We are using the signal length as mid term window and step,
             # in order to guarantee a mid-term feature sequence of len 1
-            [mt_feats, _, names] = mF.mid_feature_extraction(x, fs,
-                                                             seg_len,
-                                                             seg_len,
-                                                             round(fs * st_win),
-                                                             round(fs * st_step))
+            [mt_f, _, _] = mF.mid_feature_extraction(x, fs,
+                                                     seg_len,
+                                                     seg_len,
+                                                     round(fs * st_win),
+                                                     round(fs * st_step))
             # extract features for music mood
-            [mt_feats_2, _, _] = mF.mid_feature_extraction(x, fs,
-                                                          round(fs * mt_win_energy),
-                                                          round(fs * mt_win_energy),
-                                                          round(fs * st_win_energy),
-                                                          round(fs * st_step_energy))
-            [mt_feats_3, _, _] = mF.mid_feature_extraction(x, fs,
-                                                          round(fs * mt_win_valence),
-                                                          round(fs * mt_win_valence),
-                                                          round(fs * st_win_valence),
-                                                          round(fs * st_step_valence))
+            [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
+                                                      round(fs * mt_win_en),
+                                                      round(fs * mt_step_en),
+                                                      round(fs * st_win_en),
+                                                      round(fs * st_step_en))
+            [mt_f_3, _, _] = mF.mid_feature_extraction(x, fs,
+                                                      round(fs * mt_win_va),
+                                                      round(fs * mt_step_va),
+                                                      round(fs * st_win_va),
+                                                      round(fs * st_step_va))
 
-
-            cur_fv = (mt_feats[:, 0] - MEAN) / STD
-            cur_fv_2 = (mt_feats_2[:, 0] - MEAN_valence) / STD_valence
-            cur_fv_3 = (mt_feats_3[:, 0] - MEAN_valence) / STD_valence
+            fv = (mt_f[:, 0] - mu) / std
+            fv_2 = (mt_f_2[:, 0] - mu_energy) / std_energy
+            fv_3 = (mt_f_3[:, 0] - mu_valence) / std_valence
 
             # classify vector:
-            [res, prob] = aT.classifier_wrapper(classifier, "svm_rbf",
-                                                cur_fv)
+            [res, prob] = aT.classifier_wrapper(classifier, "svm_rbf", fv)
             win_class = class_names[int(res)]
 
             [res_energy, prob_energy] = aT.classifier_wrapper(clf_energy,
                                                               "svm_rbf",
-                                                              cur_fv_2)
+                                                              fv_2)
             win_class_energy = class_names_energy[int(res_energy)]
 
             [res_valence, prob_valence] = aT.classifier_wrapper(clf_valence,
-                                                              "svm_rbf",
-                                                              cur_fv_2)
+                                                                "svm_rbf",
+                                                                fv_3)
             win_class_valence = class_names_valence[int(res_valence)]
 
-
+            print(prob_valence)
             print(win_class, win_class_energy, win_class_valence)
+
             if use_yeelight_bulbs:
                 for b in bulbs:
                     if win_class == "silence":
@@ -152,7 +145,8 @@ def parse_arguments():
     record_analyze.add_argument("-d", "--devices", nargs="+",
                                 help="IPs to Yeelight device(s) to use")
     record_analyze.add_argument("-bs", "--blocksize",
-                                  type=float, choices=[0.25, 0.5, 0.75, 1, 2, 5],
+                                  type=float,
+                                choices=[0.25, 0.5, 0.75, 1, 2, 5],
                                   default=1, help="Recording block size")
     record_analyze.add_argument("-fs", "--samplingrate", type=int,
                                   choices=[4000, 8000, 16000, 32000, 44100],
@@ -164,6 +158,6 @@ if __name__ == "__main__":
     args = parse_arguments()
     fs = args.samplingrate
     if fs != 8000:
-        print("Warning! Segment classifiers have been trained on 8KHz samples. "
-              "Therefore results will be not optimal. ")
+        print("Warning! Segment classifiers have been trained on 8KHz samples."
+              " Therefore results will be not optimal. ")
     record_audio(args.blocksize, args.devices, False, fs)
