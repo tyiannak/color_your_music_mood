@@ -10,6 +10,7 @@ import signal
 import pyaudio
 import struct
 from yeelight import Bulb
+import cv2
 
 global fs
 global all_data
@@ -120,7 +121,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                            p_val[class_names_valence.index("negative")]
 
             print(win_class, win_class_energy, win_class_valence)
-            print(soft_energy, soft_valence)
+            print(soft_valence, soft_energy)
 
             if use_yeelight_bulbs:
                 for b in bulbs:
@@ -138,6 +139,19 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             mid_buf = numpy.double(mid_buf)
             mid_buf = []
 
+            img = cv2.cvtColor(cv2.imread("music_color_mood.png"), cv2.COLOR_BGR2RGB)
+            h, w, _ = img.shape
+            y_center, x_center = int(h / 2), int(w / 2)
+            print(img[y_center, x_center])
+            x = x_center + int((w/2) * soft_valence)
+            y = y_center - int((h/2) * soft_energy)
+            img[y-10:y+10, x-10:x+10] = [0, 0, 255]
+
+            cv2.putText(img, "x", (y_center, x_center),
+                        cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
+
+            print(w, h)
+            cv2.imshow('Signal', img)
             ch = cv2.waitKey(10)
             count += 1
 
