@@ -18,7 +18,7 @@ global outstr
 fs = 8000
 FORMAT = pyaudio.paInt16
 
-img = cv2.cvtColor(cv2.imread("music_color_mood_s.png"),
+img = cv2.cvtColor(cv2.imread("music_color_mood.png"),
                    cv2.COLOR_BGR2RGB)
 print(img.shape)
 colors = {"coral": [255, 127, 80],

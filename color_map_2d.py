@@ -18,16 +18,19 @@ def create_2d_color_map(list_of_points, list_of_colors, height, width):
     rgb = np.zeros((height, width, 3)).astype("uint8")
     c_x = int(width / 2)
     c_y = int(height / 2)
+    step = 9
+    win_size = int((step-1) / 2)
     for i in range(len(list_of_points)):
         rgb[c_y - int(list_of_points[i][1] * height / 2),
             c_x + int(list_of_points[i][0] * width / 2)] = list_of_colors[i]
-    for y in range(height):
-        for x in range(width):
+    for y in range(win_size, height - win_size, step):
+        for x in range(win_size, width - win_size, step):
             x_real = (x - width / 2) / (width / 2)
             y_real = (height / 2 - y ) / (height / 2)
             color = get_color_for_point([x_real, y_real], list_of_colors,
                                         list_of_points)
-            rgb[y, x] = color
+            rgb[y - win_size: y + win_size,
+                x - win_size: x + win_size] = color
     bgr = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
     return bgr
 
