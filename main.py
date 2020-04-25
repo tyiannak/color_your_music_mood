@@ -1,6 +1,5 @@
 import sys
 import numpy
-import cv2
 import argparse
 import scipy.io.wavfile as wavfile
 from pyAudioAnalysis import MidTermFeatures as mF
@@ -11,6 +10,7 @@ import pyaudio
 import struct
 from yeelight import Bulb
 import cv2
+import color_map_2d
 
 global fs
 global all_data
@@ -18,6 +18,29 @@ global outstr
 fs = 8000
 FORMAT = pyaudio.paInt16
 
+img = cv2.cvtColor(cv2.imread("music_color_mood_s.png"),
+                   cv2.COLOR_BGR2RGB)
+print(img.shape)
+colors = {"coral": [255, 127, 80],
+          "pink": [255, 192, 203],
+          "orange": [255, 165, 0],
+          "blue": [0, 0, 205],
+          "green": [0, 205, 0],
+          "red": [205, 0, 0],
+          "yellow": [204, 204, 0]}
+angry_pos = [-0.8, 0.5]
+fear_pos = [-0.3, 0.8]
+happy_pos = [0.6, 0.6]
+calm_pos = [0.4, -0.5]
+sad_pos = [-0.6, -0.4]
+emo_map = color_map_2d.create_2d_color_map([angry_pos, fear_pos, happy_pos,
+                                            calm_pos, sad_pos],
+                                           [colors["red"], colors["yellow"],
+                                            colors["orange"], colors["green"],
+                                            colors["blue"]],
+                                           img.shape[0], img.shape[1])
+print(emo_map.shape)
+new_img = cv2.addWeighted(img, 0.4, emo_map, 0.8, 0)
 
 def signal_handler(signal, frame):
     """
@@ -139,17 +162,19 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             mid_buf = numpy.double(mid_buf)
             mid_buf = []
 
-            img = cv2.cvtColor(cv2.imread("music_color_mood.png"), cv2.COLOR_BGR2RGB)
             h, w, _ = img.shape
             y_center, x_center = int(h / 2), int(w / 2)
             x = x_center + int((w/2) * soft_valence)
             y = y_center - int((h/2) * soft_energy)
-            img[y-10:y+10, x-10:x+10] = [0, 0, 255]
 
-            cv2.putText(img, "x", (y_center, x_center),
-                        cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
+            new_img_2 = new_img.copy()
+            new_img_2[y-10:y+10, x-10:x+10] = [200, 50, 10]
 
-            cv2.imshow('Signal', img)
+
+#            cv2.putText(img, "x", (y_center, x_center),
+#                        cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
+
+            cv2.imshow('Signal', new_img_2)
             ch = cv2.waitKey(10)
             count += 1
 
