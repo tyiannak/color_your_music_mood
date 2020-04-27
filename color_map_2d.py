@@ -4,9 +4,24 @@ import scipy.spatial
 
 
 def get_color_for_point(point_coords, list_of_colors, list_of_point_centers):
+    """
+    get_color_for_point() computes an RGB color value for a point in the
+    (-1, 1) 2D plane, based on a set of RGB color values, defined on particular
+    points of the same 2D plane.
+    :param point_coords: coordinates for the point for which we want to
+    calculate its color
+    :param list_of_colors:  list of RGB color values [[R1, G1, B1], ...,
+    [RN, GN, BN]] for the N points in the 2D plane (see next atribute)
+    :param list_of_point_centers: list of point coodinates
+    [[x1, y1], ..., [xN, yMN] of the of the aforementioned colors
+    :return:
+    """
     color = np.array([0.0, 0.0, 0.0])
+    # get distances of the "query" point from all other points
     distances = scipy.spatial.distance.cdist([point_coords],
                                              list_of_point_centers)[0]
+    
+    # get weights and compute new RGB value as weighted sum:
     weights = 1 / (distances + 0.01)
     for ic, c in enumerate(list_of_colors):
         color += (np.array(c) * weights[ic])
