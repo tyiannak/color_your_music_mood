@@ -18,15 +18,15 @@ global outstr
 fs = 8000
 FORMAT = pyaudio.paInt16
 
+"""
+Load 2D image of the valence-arousal representation and define coordinates
+of emotions and respective colors
+"""
 img = cv2.cvtColor(cv2.imread("music_color_mood.png"),
                    cv2.COLOR_BGR2RGB)
-colors = {"coral": [255, 127, 80],
-          "pink": [255, 192, 203],
-          "orange": [255, 165, 0],
-          "blue": [0, 0, 205],
-          "green": [0, 205, 0],
-          "red": [205, 0, 0],
-          "yellow": [204, 204, 0]}
+colors = {"coral": [255, 127, 80], "pink": [255, 192, 203],
+          "orange": [255, 165, 0], "blue": [0, 0, 205],
+          "green": [0, 205, 0], "red": [205, 0, 0], "yellow": [204, 204, 0]}
 angry_pos = [-0.8, 0.5]
 fear_pos = [-0.3, 0.8]
 happy_pos = [0.6, 0.6]
@@ -39,6 +39,7 @@ emo_map = color_map_2d.create_2d_color_map([angry_pos, fear_pos, happy_pos,
                                             colors["blue"]],
                                            img.shape[0], img.shape[1])
 new_img = cv2.addWeighted(img, 0.4, emo_map, 0.8, 0)
+
 
 def signal_handler(signal, frame):
     """
@@ -62,7 +63,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
         for d in devices:
             bulbs.append(Bulb(d))
 
-    # inialize recording process
+    # initialize recording process
     mid_buf_size = int(fs * block_size)
     pa = pyaudio.PyAudio()
     stream = pa.open(format=FORMAT, channels=1, rate=fs,
@@ -110,15 +111,15 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                                                      round(fs * st_step))
             # extract features for music mood
             [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
-                                                      round(fs * mt_win_en),
-                                                      round(fs * mt_step_en),
-                                                      round(fs * st_win_en),
-                                                      round(fs * st_step_en))
+                                                       round(fs * mt_win_en),
+                                                       round(fs * mt_step_en),
+                                                       round(fs * st_win_en),
+                                                       round(fs * st_step_en))
             [mt_f_3, _, _] = mF.mid_feature_extraction(x, fs,
-                                                      round(fs * mt_win_va),
-                                                      round(fs * mt_step_va),
-                                                      round(fs * st_win_va),
-                                                      round(fs * st_step_va))
+                                                       round(fs * mt_win_va),
+                                                       round(fs * mt_step_va),
+                                                       round(fs * st_win_va),
+                                                       round(fs * st_step_va))
 
             fv = (mt_f[:, 0] - mu) / std
             fv_2 = (mt_f_2[:, 0] - mu_energy) / std_energy
@@ -141,8 +142,8 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             soft_valence = p_val[class_names_valence.index("positive")] - \
                            p_val[class_names_valence.index("negative")]
 
-            print(win_class, win_class_energy, win_class_valence)
-            print(soft_valence, soft_energy)
+            print(win_class, win_class_energy, win_class_valence,
+                  soft_valence, soft_energy)
 
             if use_yeelight_bulbs:
                 for b in bulbs:
