@@ -20,7 +20,6 @@ FORMAT = pyaudio.paInt16
 
 img = cv2.cvtColor(cv2.imread("music_color_mood.png"),
                    cv2.COLOR_BGR2RGB)
-print(img.shape)
 colors = {"coral": [255, 127, 80],
           "pink": [255, 192, 203],
           "orange": [255, 165, 0],
@@ -39,7 +38,6 @@ emo_map = color_map_2d.create_2d_color_map([angry_pos, fear_pos, happy_pos,
                                             colors["orange"], colors["green"],
                                             colors["blue"]],
                                            img.shape[0], img.shape[1])
-print(emo_map.shape)
 new_img = cv2.addWeighted(img, 0.4, emo_map, 0.8, 0)
 
 def signal_handler(signal, frame):
