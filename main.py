@@ -38,7 +38,7 @@ emo_map = color_map_2d.create_2d_color_map([angry_pos, fear_pos, happy_pos,
                                             colors["orange"], colors["green"],
                                             colors["blue"]],
                                            img.shape[0], img.shape[1])
-new_img = cv2.addWeighted(img, 0.4, emo_map, 0.8, 0)
+emo_map_img = cv2.addWeighted(img, 0.4, emo_map, 1, 0)
 
 
 def signal_handler(signal, frame):
@@ -166,14 +166,23 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             x = x_center + int((w/2) * soft_valence)
             y = y_center - int((h/2) * soft_energy)
 
-            new_img_2 = new_img.copy()
-            new_img_2[y-10:y+10, x-10:x+10] = [200, 50, 10]
+            radius = 20
+            thickness = -1
+            emo_map_img_2 = emo_map_img.copy()
+            color = (emo_map_img_2[y, x])
+            print((int(color[0]), int(color[1]),
+                                        int(color[2])))
+            emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
+                                       radius,
+                                       (int(color[0]), int(color[1]),
+                                        int(color[2])), thickness)
+#            emo_map_img_2[y-10:y+10, x-10:x+10] += 10
 
 
 #            cv2.putText(img, "x", (y_center, x_center),
 #                        cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
 
-            cv2.imshow('Signal', new_img_2)
+            cv2.imshow('Signal', emo_map_img_2)
             ch = cv2.waitKey(10)
             count += 1
 
