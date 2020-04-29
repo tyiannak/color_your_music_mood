@@ -3,18 +3,18 @@ import cv2
 import scipy.spatial
 
 
-def get_color_for_point(point_coords, list_of_colors, list_of_point_centers):
+def get_color_for_point(point_coords, list_of_point_centers, list_of_colors):
     """
     get_color_for_point() computes an RGB color value for a point in the
     (-1, 1) 2D plane, based on a set of RGB color values, defined on particular
     points of the same 2D plane.
     :param point_coords: coordinates for the point for which we want to
     calculate its color
-    :param list_of_colors:  list of RGB color values [[R1, G1, B1], ...,
-    [RN, GN, BN]] for the N points in the 2D plane (see next atribute)
     :param list_of_point_centers: list of point coodinates
     [[x1, y1], ..., [xN, yMN] of the of the aforementioned colors
-    :return:
+    :param list_of_colors:  list of RGB color values [[R1, G1, B1], ...,
+    [RN, GN, BN]] for the N points in the 2D plane (see prev atribute)
+    :return: interpolated RGB color for the input point (1st arg)
     """
     color = np.array([0.0, 0.0, 0.0])
     # get distances of the "query" point from all other points
@@ -30,6 +30,18 @@ def get_color_for_point(point_coords, list_of_colors, list_of_point_centers):
 
 
 def create_2d_color_map(list_of_points, list_of_colors, height, width):
+    """
+    create_2d_color_map() creates a colormap by interpolating RGB color values,
+    given a list of colors to be defined on particular points of the 2D
+    plane.
+    :param list_of_points: list of point coodinates
+    [[x1, y1], ..., [xN, yMN] of the of the aforementioned colors
+    :param list_of_colors: list of RGB color values [[R1, G1, B1], ...,
+    [RN, GN, BN]] for the N points in the 2D plane (see prev atribute)
+    :param height: output image height
+    :param width:  output image weight
+    :return: estimated color image
+    """
     rgb = np.zeros((height, width, 3)).astype("uint8")
     c_x = int(width / 2)
     c_y = int(height / 2)
@@ -42,12 +54,13 @@ def create_2d_color_map(list_of_points, list_of_colors, height, width):
         for x in range(win_size, width - win_size, step):
             x_real = (x - width / 2) / (width / 2)
             y_real = (height / 2 - y ) / (height / 2)
-            color = get_color_for_point([x_real, y_real], list_of_colors,
-                                        list_of_points)
+            color = get_color_for_point([x_real, y_real], list_of_points,
+                                        list_of_colors)
             rgb[y - win_size: y + win_size,
                 x - win_size: x + win_size] = color
     bgr = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
     return bgr
+
 
 if __name__ == "__main__":
     colors = {"coral": [255,127,80],
@@ -62,8 +75,10 @@ if __name__ == "__main__":
     happy_pos = [0.6, 0.6]
     calm_pos = [0.4, -0.5]
     sad_pos = [-0.6, -0.4]
-    bgr = create_2d_color_map([angry_pos, fear_pos, happy_pos, calm_pos, sad_pos],
-                              [colors["red"],  colors["yellow"], colors["orange"],
-                              colors["green"], colors["blue"]], 200, 200)
+    bgr = create_2d_color_map([angry_pos, fear_pos, happy_pos,
+                               calm_pos, sad_pos],
+                              [colors["red"],  colors["yellow"],
+                               colors["orange"], colors["green"],
+                               colors["blue"]], 200, 200)
     cv2.imshow('Signal', bgr)
     ch = cv2.waitKey(10000)
