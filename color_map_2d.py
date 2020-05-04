@@ -26,6 +26,12 @@ def get_color_for_point(point_coords, list_of_point_centers, list_of_colors):
     for ic, c in enumerate(list_of_colors):
         color += (np.array(c) * weights[ic])
     color /= (np.sum(weights))
+    sum_color = np.sum(color)
+    required_sum_color = 400
+    if color.max() * ((required_sum_color)/(sum_color)) <= 255:
+        color *= ((required_sum_color)/(sum_color))
+    else:
+        color *= ((255)/(color.max()))
     return color
 
 
@@ -45,7 +51,7 @@ def create_2d_color_map(list_of_points, list_of_colors, height, width):
     rgb = np.zeros((height, width, 3)).astype("uint8")
     c_x = int(width / 2)
     c_y = int(height / 2)
-    step = 9
+    step = 5
     win_size = int((step-1) / 2)
     for i in range(len(list_of_points)):
         rgb[c_y - int(list_of_points[i][1] * height / 2),
@@ -56,8 +62,8 @@ def create_2d_color_map(list_of_points, list_of_colors, height, width):
             y_real = (height / 2 - y ) / (height / 2)
             color = get_color_for_point([x_real, y_real], list_of_points,
                                         list_of_colors)
-            rgb[y - win_size: y + win_size,
-                x - win_size: x + win_size] = color
+            rgb[y - win_size - 1 : y + win_size + 1,
+                x - win_size - 1 : x + win_size + 1] = color
     bgr = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
     return bgr
 
