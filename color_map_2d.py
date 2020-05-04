@@ -22,16 +22,16 @@ def get_color_for_point(point_coords, list_of_point_centers, list_of_colors):
                                              list_of_point_centers)[0]
     
     # get weights and compute new RGB value as weighted sum:
-    weights = 1 / (distances + 0.01)
+    weights = 1 / (distances + 0.1)
     for ic, c in enumerate(list_of_colors):
         color += (np.array(c) * weights[ic])
     color /= (np.sum(weights))
     sum_color = np.sum(color)
-    required_sum_color = 400
-    if color.max() * ((required_sum_color)/(sum_color)) <= 255:
-        color *= ((required_sum_color)/(sum_color))
+    required_sum_color = 400.0
+    if color.max() * (required_sum_color/sum_color) <= 255:
+        color *= (required_sum_color/sum_color)
     else:
-        color *= ((255)/(color.max()))
+        color *= (255/(color.max()))
     return color
 
 
