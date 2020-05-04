@@ -24,18 +24,39 @@ of emotions and respective colors
 """
 img = cv2.cvtColor(cv2.imread("music_color_mood.png"),
                    cv2.COLOR_BGR2RGB)
-colors = {"coral": [255, 127, 80], "pink": [255, 192, 203],
-          "orange": [255, 165, 0], "blue": [0, 0, 205],
-          "green": [0, 205, 0], "red": [205, 0, 0], "yellow": [204, 204, 0]}
-angry_pos = [-0.8, 0.5]
-fear_pos = [-0.3, 0.8]
-happy_pos = [0.6, 0.6]
-calm_pos = [0.4, -0.5]
-sad_pos = [-0.6, -0.4]
-emo_map = color_map_2d.create_2d_color_map([angry_pos, fear_pos, happy_pos,
-                                            calm_pos, sad_pos],
-                                           [colors["red"], colors["yellow"],
-                                            colors["orange"], colors["green"],
+
+"""
+Color definition and emotion colormap definition
+"""
+colors = {"coral": [255, 127, 80],
+          "pink": [255, 192, 203],
+          "orange": [255, 165, 0],
+          "blue": [0, 0, 205],
+          "bluegreen": [0, 125, 125],
+          "green": [0, 205, 0],
+          "red": [205, 0, 0],
+          "yellow": [204, 204, 0],
+          "purple": [128, 0, 128]}
+disgust_pos = [-0.9, 0.1]
+angry_pos = [-0.65, 0.65]
+alert_pos = [0, 0.8]
+happy_pos = [0.5, 0.5]
+calm_pos = [0.4, -0.4]
+relaxed_pos = [0, -0.4]
+sad_pos = [-0.5, -0.4]
+emo_map = color_map_2d.create_2d_color_map([disgust_pos,
+                                            angry_pos,
+                                            alert_pos,
+                                            happy_pos,
+                                            calm_pos,
+                                            relaxed_pos,
+                                            sad_pos],
+                                           [colors["purple"],
+                                            colors["red"],
+                                            colors["orange"],
+                                            colors["yellow"],
+                                            colors["green"],
+                                            colors["bluegreen"],
                                             colors["blue"]],
                                            img.shape[0], img.shape[1])
 emo_map_img = cv2.addWeighted(img, 0.4, emo_map, 1, 0)
@@ -167,22 +188,18 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             y = y_center - int((h/2) * soft_energy)
 
             radius = 20
-            thickness = -1
             emo_map_img_2 = emo_map_img.copy()
-            color = (emo_map_img_2[y, x])
-            print((int(color[0]), int(color[1]),
-                                        int(color[2])))
+            color = numpy.median(emo_map[y-2:y+2, x-2:x+2], axis=0).mean(axis=0)
             emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
                                        radius,
                                        (int(color[0]), int(color[1]),
-                                        int(color[2])), thickness)
-#            emo_map_img_2[y-10:y+10, x-10:x+10] += 10
-
-
-#            cv2.putText(img, "x", (y_center, x_center),
-#                        cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
-
-            cv2.imshow('Signal', emo_map_img_2)
+                                        int(color[2])), -1)
+            emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
+                                       radius,
+                                       (int(color[0] * 0.75),
+                                        int(color[1] * 0.75),
+                                        int(color[2] * 0.75)), 2)
+            cv2.imshow('Emotion Color Map', emo_map_img_2)
             ch = cv2.waitKey(10)
             count += 1
 
