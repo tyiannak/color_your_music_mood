@@ -28,36 +28,39 @@ img = cv2.cvtColor(cv2.imread("music_color_mood.png"),
 """
 Color definition and emotion colormap definition
 """
-colors = {"coral": [255, 127, 80],
-          "pink": [255, 192, 203],
+colors = {
           "orange": [255, 165, 0],
-          "blue": [0, 0, 205],
-          "bluegreen": [0, 125, 125],
+          "blue": [0, 0, 255],
+          "bluegreen": [0, 165, 255],
           "green": [0, 205, 0],
-          "red": [205, 0, 0],
-          "yellow": [204, 204, 0],
-          "purple": [128, 0, 128]}
-disgust_pos = [-0.9, 0.1]
-angry_pos = [-0.65, 0.65]
-alert_pos = [0, 0.8]
+          "red": [255, 0, 0],
+          "yellow": [255, 255, 0],
+          "purple": [128, 0, 128],
+          "neutral": [255, 241, 224]}
+disgust_pos = [-0.9, 0]
+angry_pos = [-0.5, 0.5]
+alert_pos = [0, 0.6]
 happy_pos = [0.5, 0.5]
 calm_pos = [0.4, -0.4]
-relaxed_pos = [0, -0.4]
-sad_pos = [-0.5, -0.4]
+relaxed_pos = [0, -0.6]
+sad_pos = [-0.5, -0.5]
+neu_pos = [0.0, 0.0]
 emo_map = color_map_2d.create_2d_color_map([disgust_pos,
                                             angry_pos,
                                             alert_pos,
                                             happy_pos,
                                             calm_pos,
                                             relaxed_pos,
-                                            sad_pos],
+                                            sad_pos,
+                                            neu_pos],
                                            [colors["purple"],
                                             colors["red"],
                                             colors["orange"],
                                             colors["yellow"],
                                             colors["green"],
                                             colors["bluegreen"],
-                                            colors["blue"]],
+                                            colors["blue"],
+                                            colors["neutral"]],
                                            img.shape[0], img.shape[1])
 emo_map_img = cv2.addWeighted(img, 0.4, emo_map, 1, 0)
 
@@ -139,6 +142,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             if win_class == "silence":
                 soft_valence = 0
                 soft_energy = 0
+                print("Silence")
             else:
                 # extract features for music mood
                 [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
@@ -178,8 +182,8 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                 soft_valence = p_val[class_names_valence.index("positive")] - \
                                p_val[class_names_valence.index("negative")]
 
-            print(win_class, win_class_energy, win_class_valence, soft_valence,
-                  soft_energy)
+                print(win_class, win_class_energy, win_class_valence, soft_valence,
+                      soft_energy)
 
             all_data += mid_buf
             mid_buf = []
@@ -192,6 +196,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             radius = 20
             emo_map_img_2 = emo_map_img.copy()
             color = numpy.median(emo_map[y-2:y+2, x-2:x+2], axis=0).mean(axis=0)
+            print(color)
             emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
                                        radius,
                                        (int(color[0]), int(color[1]),
