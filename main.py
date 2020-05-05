@@ -130,56 +130,58 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                                                      seg_len,
                                                      round(fs * st_win),
                                                      round(fs * st_step))
-            # extract features for music mood
-            [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
-                                                       round(fs * mt_win_en),
-                                                       round(fs * mt_step_en),
-                                                       round(fs * st_win_en),
-                                                       round(fs * st_step_en))
-            [mt_f_3, _, _] = mF.mid_feature_extraction(x, fs,
-                                                       round(fs * mt_win_va),
-                                                       round(fs * mt_step_va),
-                                                       round(fs * st_win_va),
-                                                       round(fs * st_step_va))
-
             fv = (mt_f[:, 0] - mu) / std
-            fv_2 = (mt_f_2[:, 0] - mu_energy) / std_energy
-            fv_3 = (mt_f_3[:, 0] - mu_valence) / std_valence
 
             # classify vector:
             [res, prob] = aT.classifier_wrapper(classifier, "svm_rbf", fv)
             win_class = class_names[int(res)]
 
-            [res_energy, p_en] = aT.classifier_wrapper(clf_energy, "svm_rbf",
-                                                       fv_2)
-            win_class_energy = class_names_energy[int(res_energy)]
+            if win_class == "silence":
+                soft_valence = 0
+                soft_energy = 0
+            else:
+                # extract features for music mood
+                [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
+                                                           round(
+                                                               fs * mt_win_en),
+                                                           round(
+                                                               fs * mt_step_en),
+                                                           round(
+                                                               fs * st_win_en),
+                                                           round(
+                                                               fs * st_step_en))
+                [mt_f_3, _, _] = mF.mid_feature_extraction(x, fs,
+                                                           round(
+                                                               fs * mt_win_va),
+                                                           round(
+                                                               fs * mt_step_va),
+                                                           round(
+                                                               fs * st_win_va),
+                                                           round(
+                                                               fs * st_step_va))
+                # normalize
+                fv_2 = (mt_f_2[:, 0] - mu_energy) / std_energy
+                fv_3 = (mt_f_3[:, 0] - mu_valence) / std_valence
 
-            [res_valence, p_val] = aT.classifier_wrapper(clf_valence, "svm_rbf",
-                                                         fv_3)
-            win_class_valence = class_names_valence[int(res_valence)]
+                [res_energy, p_en] = aT.classifier_wrapper(clf_energy,
+                                                           "svm_rbf",
+                                                           fv_2)
+                win_class_energy = class_names_energy[int(res_energy)]
 
-            soft_energy = p_en[class_names_energy.index("high")] - \
-                          p_en[class_names_energy.index("low")]
-            soft_valence = p_val[class_names_valence.index("positive")] - \
-                           p_val[class_names_valence.index("negative")]
+                [res_valence, p_val] = aT.classifier_wrapper(clf_valence,
+                                                             "svm_rbf",
+                                                             fv_3)
+                win_class_valence = class_names_valence[int(res_valence)]
 
-            print(win_class, win_class_energy, win_class_valence,
-                  soft_valence, soft_energy)
+                soft_energy = p_en[class_names_energy.index("high")] - \
+                              p_en[class_names_energy.index("low")]
+                soft_valence = p_val[class_names_valence.index("positive")] - \
+                               p_val[class_names_valence.index("negative")]
 
-            if use_yeelight_bulbs:
-                for b in bulbs:
-                    if win_class == "silence":
-                        b.set_hsv(50, 50, 20)
-                    elif win_class == "other":
-                        b.set_hsv(140, 50, 20)
-                    elif win_class == "speech":
-                        b.set_hsv(320, 100, 100)
-                    elif win_class == "music":
-                        b.set_hsv(0, 100, 100)
+            print(win_class, win_class_energy, win_class_valence, soft_valence,
+                  soft_energy)
 
-            win_prob = prob[int(res)]
             all_data += mid_buf
-            mid_buf = numpy.double(mid_buf)
             mid_buf = []
 
             h, w, _ = img.shape
@@ -197,6 +199,13 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
                                        radius, (255, 255, 255), 2)
             cv2.imshow('Emotion Color Map', emo_map_img_2)
+
+            # set yeelight bulb colors
+            if use_yeelight_bulbs:
+                for b in bulbs:
+                    b.set_rgb(int(color[0]), int(color[1]), int(color[2]))
+
+
             ch = cv2.waitKey(10)
             count += 1
 
@@ -208,7 +217,7 @@ def parse_arguments():
                                 help="IPs to Yeelight device(s) to use")
     record_analyze.add_argument("-bs", "--blocksize",
                                   type=float,
-                                choices=[0.25, 0.5, 0.75, 1, 2, 5],
+                                choices=[0.25, 0.5, 0.75, 1],
                                   default=1, help="Recording block size")
     record_analyze.add_argument("-fs", "--samplingrate", type=int,
                                   choices=[4000, 8000, 16000, 32000, 44100],
