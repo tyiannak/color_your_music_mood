@@ -195,10 +195,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                                        (int(color[0]), int(color[1]),
                                         int(color[2])), -1)
             emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
-                                       radius,
-                                       (int(color[0] * 0.75),
-                                        int(color[1] * 0.75),
-                                        int(color[2] * 0.75)), 2)
+                                       radius, (255, 255, 255), 2)
             cv2.imshow('Emotion Color Map', emo_map_img_2)
             ch = cv2.waitKey(10)
             count += 1
