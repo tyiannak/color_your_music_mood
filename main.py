@@ -9,6 +9,7 @@ import signal
 import pyaudio
 import struct
 from yeelight import Bulb
+import yeelight
 import cv2
 import color_map_2d
 
@@ -86,6 +87,11 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
     if use_yeelight_bulbs:
         for d in devices:
             bulbs.append(Bulb(d))
+    try:
+        bulbs[-1].turn_on()
+    except:
+        bulbs = []
+        print(yeelight.main.BulbException)
 
     # initialize recording process
     mid_buf_size = int(fs * block_size)
@@ -208,7 +214,10 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             # set yeelight bulb colors
             if use_yeelight_bulbs:
                 for b in bulbs:
-                    b.set_rgb(int(color[0]), int(color[1]), int(color[2]))
+                    if b:
+                        print("SETTING BLUBGS TO ")
+                        print(int(color[2]), int(color[1]), int(color[0]))
+                        b.set_rgb(int(color[2]), int(color[1]), int(color[0]))
 
 
             ch = cv2.waitKey(10)
@@ -236,4 +245,4 @@ if __name__ == "__main__":
     if fs != 8000:
         print("Warning! Segment classifiers have been trained on 8KHz samples."
               " Therefore results will be not optimal. ")
-    record_audio(args.blocksize, args.devices, False, fs)
+    record_audio(args.blocksize, args.devices, True, fs)
