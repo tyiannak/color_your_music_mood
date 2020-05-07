@@ -2,7 +2,7 @@ import sys
 import numpy
 import argparse
 import scipy.io.wavfile as wavfile
-from pyAudioAnalysis import MidTermFeatures as mF
+from pyAudioAnalysis.MidTermFeatures import mid_feature_extraction as mF
 from pyAudioAnalysis import audioTrainTest as aT
 import datetime
 import signal
@@ -91,7 +91,6 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
         bulbs[-1].turn_on()
     except:
         bulbs = []
-        print(yeelight.main.BulbException)
 
     # initialize recording process
     mid_buf_size = int(fs * block_size)
@@ -134,11 +133,8 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             # extract features
             # We are using the signal length as mid term window and step,
             # in order to guarantee a mid-term feature sequence of len 1
-            [mt_f, _, _] = mF.mid_feature_extraction(x, fs,
-                                                     seg_len,
-                                                     seg_len,
-                                                     round(fs * st_win),
-                                                     round(fs * st_step))
+            [mt_f, _, _] = mF(x, fs, seg_len, seg_len, round(fs * st_win),
+                              round(fs * st_step))
             fv = (mt_f[:, 0] - mu) / std
 
             # classify vector:
@@ -151,27 +147,15 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                 print("Silence")
             else:
                 # extract features for music mood
-                [mt_f_2, _, _] = mF.mid_feature_extraction(x, fs,
-                                                           round(
-                                                               fs * mt_win_en),
-                                                           round(
-                                                               fs * mt_step_en),
-                                                           round(
-                                                               fs * st_win_en),
-                                                           round(
-                                                               fs * st_step_en))
-                [mt_f_3, _, _] = mF.mid_feature_extraction(x, fs,
-                                                           round(
-                                                               fs * mt_win_va),
-                                                           round(
-                                                               fs * mt_step_va),
-                                                           round(
-                                                               fs * st_win_va),
-                                                           round(
-                                                               fs * st_step_va))
-                # normalize
-                fv_2 = (mt_f_2[:, 0] - mu_energy) / std_energy
-                fv_3 = (mt_f_3[:, 0] - mu_valence) / std_valence
+                [f_2, _, _] = mF(x, fs, round(fs * mt_win_en),
+                                 round(fs * mt_step_en), round(fs * st_win_en),
+                                 round(fs * st_step_en))
+                [f_3, _, _] = mF(x, fs, round(fs * mt_win_va),
+                                 round(fs * mt_step_va), round(fs * st_win_va),
+                                 round(fs * st_step_va))
+                # normalize feature vector
+                fv_2 = (f_2[:, 0] - mu_energy) / std_energy
+                fv_3 = (f_3[:, 0] - mu_valence) / std_valence
 
                 [res_energy, p_en] = aT.classifier_wrapper(clf_energy,
                                                            "svm_rbf",
@@ -188,8 +172,8 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
                 soft_valence = p_val[class_names_valence.index("positive")] - \
                                p_val[class_names_valence.index("negative")]
 
-                print(win_class, win_class_energy, win_class_valence, soft_valence,
-                      soft_energy)
+                print(win_class, win_class_energy, win_class_valence,
+                      soft_valence, soft_energy)
 
             all_data += mid_buf
             mid_buf = []
@@ -202,7 +186,6 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             radius = 20
             emo_map_img_2 = emo_map_img.copy()
             color = numpy.median(emo_map[y-2:y+2, x-2:x+2], axis=0).mean(axis=0)
-            print(color)
             emo_map_img_2 = cv2.circle(emo_map_img_2, (x, y),
                                        radius,
                                        (int(color[0]), int(color[1]),
@@ -240,7 +223,11 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     fs = args.samplingrate
+    if args.devices:
+        devices = args.devices
+    else:
+        devices = []
     if fs != 8000:
         print("Warning! Segment classifiers have been trained on 8KHz samples."
               " Therefore results will be not optimal. ")
-    record_audio(args.blocksize, args.devices, True, fs)
+    record_audio(args.blocksize, devices, True, fs)
