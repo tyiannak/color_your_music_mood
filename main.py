@@ -215,12 +215,10 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             if use_yeelight_bulbs:
                 for b in bulbs:
                     if b:
-                        print("SETTING BLUBGS TO ")
-                        print(int(color[2]), int(color[1]), int(color[0]))
+                        # attention: color is in bgr so we need to invert:
                         b.set_rgb(int(color[2]), int(color[1]), int(color[0]))
 
-
-            ch = cv2.waitKey(10)
+            cv2.waitKey(10)
             count += 1
 
 
