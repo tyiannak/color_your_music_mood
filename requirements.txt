@@ -1,0 +1,6 @@
+numpy==1.18.1
+PyAudio==0.2.11
+scipy==1.4.1
+opencv_python==4.2.0.34
+yeelight==0.5.3
+pyAudioAnalysis==0.3.5
