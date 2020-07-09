@@ -140,8 +140,7 @@ def record_audio(block_size, devices, use_yeelight_bulbs=False, fs=8000):
             # classify vector:
             [res, prob] = aT.classifier_wrapper(classifier, "svm_rbf", fv)
             win_class = class_names[int(res)]
-
-            if win_class == "silence":
+            if prob[class_names.index("silence")] > 0.8:
                 soft_valence = 0
                 soft_energy = 0
                 print("Silence")
