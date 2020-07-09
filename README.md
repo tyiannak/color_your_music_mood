@@ -6,7 +6,9 @@ the detected musical mood)
 
 ![Image description](color_your_music_mood.png)
 
-TODO: Video Demo
+Video Demo
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/M949SZnNJYA/0.jpg)](https://www.youtube.com/watch?v=M949SZnNJYA)
 
 
 # How it works
