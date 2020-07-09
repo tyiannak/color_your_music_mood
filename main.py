@@ -1,3 +1,9 @@
+"""
+This demo records sound and - when music is detected - it estimates the
+underlying mood (emotion) and based on that it generates a respective color.
+If available, it can even set your Yeelight Bulb color
+(again based on the detected musical mood)
+"""
 import sys
 import numpy
 import argparse
@@ -9,7 +15,6 @@ import signal
 import pyaudio
 import struct
 from yeelight import Bulb
-import yeelight
 import cv2
 import color_map_2d
 
@@ -38,6 +43,7 @@ colors = {
           "yellow": [255, 255, 0],
           "purple": [128, 0, 128],
           "neutral": [255, 241, 224]}
+
 disgust_pos = [-0.9, 0]
 angry_pos = [-0.5, 0.5]
 alert_pos = [0, 0.6]
@@ -46,6 +52,11 @@ calm_pos = [0.4, -0.4]
 relaxed_pos = [0, -0.6]
 sad_pos = [-0.5, -0.5]
 neu_pos = [0.0, 0.0]
+
+# Each point in the valence/energy map is represented with a static color based
+# on the above mapping. All intermediate points of the emotion colormap
+# are then computed using the color_map_2d.create_2d_color_map() function:
+
 emo_map = color_map_2d.create_2d_color_map([disgust_pos,
                                             angry_pos,
                                             alert_pos,
