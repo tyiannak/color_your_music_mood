@@ -4,9 +4,11 @@ underlying mood (emotion) and based on that it generates a respective color.
 If available, it can even set your Yeelight Bulb color (again based on 
 the detected musical mood)
 
+[Checkout this hackernoon article for more details on the implemented methodology and experimentation](https://hackernoon.com/how-to-use-machine-learning-to-color-your-lighting-based-on-music-mood-bi163u8l)
+
 ![Image description](color_your_music_mood.png)
 
-Video Demo
+# Video Demo
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/M949SZnNJYA/0.jpg)](https://www.youtube.com/watch?v=M949SZnNJYA)
 
